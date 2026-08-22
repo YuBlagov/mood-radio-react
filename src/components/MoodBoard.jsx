@@ -1,4 +1,3 @@
-import { MoodIcon } from "./MoodIcon.jsx";
 import { ILLUSTRATIONS } from "./illustrations.jsx";
 
 // A fixed scatter layout: each card gets a hand-picked offset/rotation so
@@ -27,9 +26,7 @@ export function MoodBoard({ items, loadingId, activeId, onSelect }) {
         return (
           <button
             key={item.id}
-            className={`mood-tile ${item.isAlbum ? "album-tile" : ""} ${
-              activeId === item.id ? "is-active" : ""
-            }`}
+            className={`mood-tile ${activeId === item.id ? "is-active" : ""}`}
             style={{
               "--card-color": item.color,
               top: slot.top,
@@ -38,18 +35,19 @@ export function MoodBoard({ items, loadingId, activeId, onSelect }) {
             }}
             onClick={() => onSelect(item)}
           >
-            {loadingId === item.id && <span className="mood-card-spinner" />}
-            {activeId === item.id && !loadingId ? (
-              <span className="now-playing-eq" aria-hidden="true">
-                <span></span>
-                <span></span>
-                <span></span>
-              </span>
-            ) : Illustration ? (
-              <Illustration className="mood-tile-illustration" />
-            ) : (
-              item.icon && <MoodIcon name={item.icon} className="mood-tile-icon" />
-            )}
+            <div className="mood-tile-scene" style={{ background: item.color }}>
+              {loadingId === item.id ? (
+                <span className="mood-card-spinner" />
+              ) : activeId === item.id ? (
+                <span className="now-playing-eq" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              ) : Illustration ? (
+                <Illustration className="mood-tile-illustration" />
+              ) : null}
+            </div>
             <span className="mood-tile-title">{item.title}</span>
           </button>
         );

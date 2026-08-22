@@ -1,13 +1,15 @@
 /* ===== Design tokens ===== */
 :root {
-  --bg: #0b0b10;
-  --surface: #1a1a22;
-  --surface-2: #22222c;
-  --text: #f5f3ee;
-  --text-muted: #8d8d99;
+  --bg: #d8cdb8;
+  --surface: #fdfbf6;
+  --surface-2: #f0ead9;
+  --text: #211f1c;
+  --text-muted: #6b6459;
   --accent: #f5b971; /* overridden per selected/hovered mood */
-  --font-display: "Monoton", cursive;
+  --ink: #211f1c; /* polaroid border / outline color */
+  --font-display: "Space Grotesk", sans-serif;
   --font-body: "Space Grotesk", sans-serif;
+  --font-caption: "Caveat", cursive;
   --font-mono: "JetBrains Mono", monospace;
   --radius-lg: 24px;
   --radius-md: 14px;
@@ -108,8 +110,7 @@ button {
 .app-header {
   padding: 24px 0 8px;
 }
-
-/* ===== Moodboard — scattered square cards, tossed on a table ===== */
+/* ===== Moodboard — scattered polaroid cards, tossed on a table ===== */
 .moodboard {
   position: relative;
   width: 100%;
@@ -120,46 +121,49 @@ button {
 
 .mood-tile {
   position: absolute;
-  width: 130px;
-  height: 130px;
-  padding: 12px;
+  width: 150px;
+  padding: 10px 10px 30px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  border-radius: 16px;
-  background: var(--card-color);
-  border: none;
-  box-shadow: 0 10px 22px -8px rgba(0, 0, 0, 0.5);
+  gap: 0;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.18);
   transform: rotate(var(--rotate));
   transition: transform 0.2s ease, box-shadow 0.2s ease, z-index 0.2s;
-  color: color-mix(in srgb, var(--card-color) 30%, black 70%);
+  color: var(--ink);
   user-select: none;
 }
 .mood-tile:hover,
 .mood-tile:focus-visible {
-  transform: rotate(0deg) scale(1.08);
-  box-shadow: 0 16px 30px -10px rgba(0, 0, 0, 0.6);
+  transform: rotate(0deg) scale(1.06);
+  box-shadow: 5px 8px 0 rgba(0, 0, 0, 0.22);
   z-index: 5;
   outline: none;
 }
 .mood-tile.is-active {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-color) 70%, white),
-    0 16px 30px -10px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 3px var(--card-color), 5px 8px 0 rgba(0, 0, 0, 0.22);
 }
 
-.mood-tile-icon {
-  flex-shrink: 0;
+.mood-tile-scene {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 2px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .mood-tile-title {
-  font-size: 13px;
+  font-family: var(--font-caption);
+  font-size: 22px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
   line-height: 1.2;
   text-align: center;
+  margin-top: 6px;
   pointer-events: none;
 }
 
@@ -172,7 +176,7 @@ button {
 .now-playing-eq span {
   width: 5px;
   border-radius: 3px;
-  background: currentColor;
+  background: var(--ink);
   animation: eq-bounce 0.9s ease-in-out infinite;
 }
 .now-playing-eq span:nth-child(1) { animation-delay: 0s; }
@@ -190,32 +194,27 @@ button {
   .moodboard {
     height: auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 18px;
     padding: 0 16px;
   }
   .mood-tile {
     position: static;
     width: auto;
-    height: auto;
-    aspect-ratio: 1 / 1;
     transform: none;
   }
   .mood-tile:hover,
   .mood-tile:focus-visible {
-    transform: scale(1.05);
+    transform: scale(1.04);
   }
 }
 
 .mood-card-spinner {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  border: 2px solid color-mix(in srgb, var(--text) 30%, transparent);
-  border-top-color: var(--text);
+  border: 2px solid color-mix(in srgb, var(--ink) 25%, transparent);
+  border-top-color: var(--ink);
   animation: spin 0.7s linear infinite;
 }
 @keyframes spin {
@@ -318,5 +317,37 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ambient-glow, .glass-card, .btn-connect { transition: none; }
+  .ambient-glow, .btn-connect { transition: none; }
+}
+
+/* ===== Login decor — a few scattered polaroids behind the hero text ===== */
+.login-decor {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.login-polaroid {
+  position: absolute;
+  width: 110px;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  padding: 8px 8px 22px;
+  box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.15);
+  opacity: 0.9;
+}
+.login-polaroid-scene {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 2px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-polaroid.p1 { top: 8%; left: 6%; transform: rotate(-10deg); }
+.login-polaroid.p2 { top: 14%; right: 8%; transform: rotate(8deg); }
+.login-polaroid.p3 { bottom: 10%; left: 12%; transform: rotate(6deg); }
+@media (max-width: 720px) {
+  .login-polaroid { width: 84px; }
+  .login-polaroid.p3 { display: none; }
 }

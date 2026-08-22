@@ -92,7 +92,7 @@ export default function App() {
       ) : (
         <section className="screen app-screen">
           <header className="app-header">
-            <h1 className="wordmark small">MUSIC MOOD APP</h1>
+            <h1 className="wordmark small">SNAPSHOT RADIO</h1>
           </header>
 
           <p className="status-message" aria-live="polite">
