@@ -1,0 +1,322 @@
+/* ===== Design tokens ===== */
+:root {
+  --bg: #0b0b10;
+  --surface: #1a1a22;
+  --surface-2: #22222c;
+  --text: #f5f3ee;
+  --text-muted: #8d8d99;
+  --accent: #f5b971; /* overridden per selected/hovered mood */
+  --font-display: "Monoton", cursive;
+  --font-body: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --radius-lg: 24px;
+  --radius-md: 14px;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+}
+
+/* ===== Ambient glow — the signature "color = emotion" background ===== */
+.ambient-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 20%,
+    color-mix(in srgb, var(--glow-color, #8d8d99) 60%, transparent) 0%,
+    transparent 60%
+  );
+  opacity: var(--glow-opacity, 0.1);
+  transition: opacity 0.6s ease, background 0.8s ease;
+  filter: blur(60px);
+}
+
+.screen {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ===== Login screen ===== */
+.login-screen {
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: 64px;
+  line-height: 0.95;
+  color: var(--text);
+  text-shadow: 0 0 24px color-mix(in srgb, var(--accent) 55%, transparent);
+  margin: 0 0 16px;
+}
+
+.wordmark.small {
+  font-size: 28px;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.tagline {
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0 0 40px;
+}
+
+.btn-connect {
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 16px 36px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-connect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(245, 243, 238, 0.15);
+}
+
+.login-note {
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ===== App header ===== */
+.app-header {
+  padding: 24px 0 8px;
+}
+
+/* ===== Moodboard — scattered square cards, tossed on a table ===== */
+.moodboard {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  height: 620px;
+  margin: 20px auto 100px;
+}
+
+.mood-tile {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 16px;
+  background: var(--card-color);
+  border: none;
+  box-shadow: 0 10px 22px -8px rgba(0, 0, 0, 0.5);
+  transform: rotate(var(--rotate));
+  transition: transform 0.2s ease, box-shadow 0.2s ease, z-index 0.2s;
+  color: color-mix(in srgb, var(--card-color) 30%, black 70%);
+  user-select: none;
+}
+.mood-tile:hover,
+.mood-tile:focus-visible {
+  transform: rotate(0deg) scale(1.08);
+  box-shadow: 0 16px 30px -10px rgba(0, 0, 0, 0.6);
+  z-index: 5;
+  outline: none;
+}
+.mood-tile.is-active {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-color) 70%, white),
+    0 16px 30px -10px rgba(0, 0, 0, 0.6);
+}
+
+.mood-tile-icon {
+  flex-shrink: 0;
+}
+
+.mood-tile-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  text-align: center;
+  pointer-events: none;
+}
+
+.now-playing-eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 32px;
+}
+.now-playing-eq span {
+  width: 5px;
+  border-radius: 3px;
+  background: currentColor;
+  animation: eq-bounce 0.9s ease-in-out infinite;
+}
+.now-playing-eq span:nth-child(1) { animation-delay: 0s; }
+.now-playing-eq span:nth-child(2) { animation-delay: 0.2s; }
+.now-playing-eq span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes eq-bounce {
+  0%, 100% { height: 8px; }
+  50% { height: 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .now-playing-eq span { animation: none; height: 20px; }
+}
+
+@media (max-width: 720px) {
+  .moodboard {
+    height: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 14px;
+    padding: 0 16px;
+  }
+  .mood-tile {
+    position: static;
+    width: auto;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    transform: none;
+  }
+  .mood-tile:hover,
+  .mood-tile:focus-visible {
+    transform: scale(1.05);
+  }
+}
+
+.mood-card-spinner {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--text) 30%, transparent);
+  border-top-color: var(--text);
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== Player bar (bottom, fixed) ===== */
+.player-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.track-art {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+.track-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.track-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-artist {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.control-btn {
+  background: transparent;
+  color: var(--text);
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+}
+.control-btn:hover {
+  color: var(--accent);
+}
+.control-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.volume-slider {
+  width: 80px;
+  accent-color: var(--accent);
+}
+
+/* ===== Status ===== */
+.status-message {
+  min-height: 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  margin: 12px 0 90px;
+  position: relative;
+  z-index: 1;
+}
+.status-message.error {
+  color: #ff8080;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 480px) {
+  .wordmark { font-size: 48px; }
+  .carousel-stage, .glass-card { width: 120px; height: 156px; }
+  .volume-slider { display: none; }
+  .track-artist { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-glow, .glass-card, .btn-connect { transition: none; }
+}
