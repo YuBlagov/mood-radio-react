@@ -15,6 +15,17 @@
   --radius-md: 14px;
 }
 
+/* Dark mode only darkens the "table" the polaroids sit on — the cards
+   themselves are photo paper, and photo paper doesn't have a dark mode.
+   --surface/--surface-2/--ink/--font-* stay untouched on purpose.
+   --text is also flipped here: it's only ever used directly on --bg
+   (the wordmark, the login button, status text), never inside a card, so
+   it needs to stay legible against the new dark backdrop. */
+[data-theme="dark"] {
+  --bg: #2a241e;
+  --text: #ede7d8;
+}
+
 * { box-sizing: border-box; }
 
 html, body, #root {
@@ -48,6 +59,44 @@ button {
   filter: blur(60px);
 }
 
+/* ===== Candle glow — a warm pool of light low on the screen, like a
+   nightlight or a candle left burning on the table after dark. Invisible
+   in light mode; fades in and gently flickers once dark mode is on. ===== */
+.candle-glow {
+  position: fixed;
+  left: 50%;
+  bottom: -15%;
+  width: 70vw;
+  max-width: 640px;
+  height: 70vw;
+  max-height: 640px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 176, 102, 0.4) 0%,
+    rgba(255, 140, 60, 0.16) 40%,
+    transparent 70%
+  );
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(20px);
+  transition: opacity 0.8s ease;
+}
+
+[data-theme="dark"] .candle-glow {
+  opacity: 1;
+  animation: candle-flicker 5s ease-in-out infinite;
+}
+
+@keyframes candle-flicker {
+  0%, 100% { opacity: 0.85; transform: translateX(-50%) scale(1); }
+  30% { opacity: 1; transform: translateX(-50%) scale(1.04); }
+  55% { opacity: 0.75; transform: translateX(-50%) scale(0.97); }
+  80% { opacity: 0.95; transform: translateX(-50%) scale(1.02); }
+}
+
 .screen {
   position: relative;
   z-index: 1;
@@ -75,6 +124,10 @@ button {
 
 .wordmark.small {
   font-size: 28px;
+  /* Reset the big wordmark's bottom margin — .small lives inline next to
+     the theme toggle in .app-header, and that leftover margin was
+     throwing off align-items:center between them. */
+  margin: 0;
   text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
@@ -108,7 +161,32 @@ button {
 
 /* ===== App header ===== */
 .app-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   padding: 24px 0 8px;
+}
+
+.theme-toggle {
+  /* Sits directly on --bg (the "table"), not on a card, so it keys off
+     --text like the wordmark/login button do — not --ink, which is only
+     meant for on-card elements and stays dark even in dark mode. */
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid var(--text);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.theme-toggle:hover {
+  background: var(--text);
+  color: var(--bg);
+  transform: scale(1.08);
 }
 /* ===== Moodboard — scattered polaroid cards, tossed on a table ===== */
 .moodboard {
@@ -347,6 +425,7 @@ button {
 
 @media (prefers-reduced-motion: reduce) {
   .ambient-glow, .btn-connect { transition: none; }
+  .candle-glow { animation: none; }
 }
 
 /* ===== Login decor — a few scattered polaroids behind the hero text ===== */
