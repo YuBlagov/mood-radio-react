@@ -88,3 +88,7 @@ export async function resumePlayback(deviceId) {
 export async function skipToNext(deviceId) {
   await apiFetch(`/me/player/next?device_id=${deviceId}`, { method: "POST" });
 }
+
+export async function skipToPrevious(deviceId) {
+  await apiFetch(`/me/player/previous?device_id=${deviceId}`, { method: "POST" });
+}

@@ -21,6 +21,15 @@ export function useSpotifyPlayer(enabled) {
   const [isPaused, setIsPaused] = useState(true);
   const [playerError, setPlayerError] = useState(null);
 
+  // Progress tracking: the SDK only fires player_state_changed on real
+  // transitions (play/pause/seek/track change), not every second. To animate
+  // a smooth progress ring we snapshot {position, duration, receivedAt} on
+  // each event, then a local interval interpolates the elapsed time between
+  // snapshots while playing.
+  const [duration, setDuration] = useState(0);
+  const [progress, setProgress] = useState(0); // 0..1
+  const snapshotRef = useRef({ position: 0, duration: 0, receivedAt: 0, paused: true });
+
   useEffect(() => {
     if (!enabled) return;
     let cancelled = false;
@@ -55,6 +64,14 @@ export function useSpotifyPlayer(enabled) {
           image: track.album.images[0]?.url || "",
         });
         setIsPaused(state.paused);
+        setDuration(state.duration);
+        snapshotRef.current = {
+          position: state.position,
+          duration: state.duration,
+          receivedAt: Date.now(),
+          paused: state.paused,
+        };
+        setProgress(state.duration ? state.position / state.duration : 0);
       });
 
       player.addListener("initialization_error", ({ message }) => setPlayerError(message));
@@ -76,8 +93,20 @@ export function useSpotifyPlayer(enabled) {
     };
   }, [enabled]);
 
+  // Ticks progress forward between real SDK snapshots, only while playing.
+  useEffect(() => {
+    if (isPaused) return;
+    const id = setInterval(() => {
+      const { position, duration, receivedAt, paused } = snapshotRef.current;
+      if (paused || !duration) return;
+      const elapsed = Date.now() - receivedAt;
+      setProgress(Math.min(1, (position + elapsed) / duration));
+    }, 250);
+    return () => clearInterval(id);
+  }, [isPaused]);
+
   const togglePlay = useCallback(() => playerRef.current?.togglePlay(), []);
   const setVolume = useCallback((value) => playerRef.current?.setVolume(Number(value)), []);
 
-  return { deviceId, currentTrack, isPaused, playerError, togglePlay, setVolume };
+  return { deviceId, currentTrack, isPaused, playerError, duration, progress, togglePlay, setVolume };
 }

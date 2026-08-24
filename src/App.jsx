@@ -3,14 +3,13 @@ import { CONFIG } from "./config.js";
 import { CAROUSEL_ITEMS } from "./moods.js";
 import { useAuth } from "./hooks/useAuth.js";
 import { useSpotifyPlayer } from "./hooks/useSpotifyPlayer.js";
-import { searchPlaylistsByMood, playContext, setShuffle, skipToNext } from "./spotifyApi.js";
+import { searchPlaylistsByMood, playContext, setShuffle, skipToNext, skipToPrevious} from "./spotifyApi.js";
 import { LoginScreen } from "./components/LoginScreen.jsx";
 import { MoodBoard } from "./components/MoodBoard.jsx";
-import { PlayerBar } from "./components/PlayerBar.jsx";
 
 export default function App() {
   const { loggedIn, authError, checkingAuth, login } = useAuth();
-  const { deviceId, currentTrack, isPaused, playerError, togglePlay, setVolume } =
+  const { deviceId, currentTrack, isPaused, playerError, togglePlay } =
     useSpotifyPlayer(loggedIn);
 
   const [activeId, setActiveId] = useState(null);
@@ -77,6 +76,16 @@ export default function App() {
     }
   }
 
+  async function handlePrev() {
+    if (!deviceId) return;
+    try {
+      await skipToPrevious(deviceId);
+    } catch (err) {
+      setStatus("Could not skip to the previous track.");
+      console.error(err);
+    }  
+  }
+
   if (checkingAuth) return null;
 
   return (
@@ -104,14 +113,11 @@ export default function App() {
             loadingId={loadingId}
             activeId={activeId}
             onSelect={handleSelect}
-          />
-
-          <PlayerBar
             track={currentTrack}
             isPaused={isPaused}
             onTogglePlay={togglePlay}
             onNext={handleNext}
-            onVolumeChange={setVolume}
+            onPrev={handlePrev}
           />
         </section>
       )}

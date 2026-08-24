@@ -132,9 +132,10 @@ button {
   border-radius: 2px;
   box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.18);
   transform: rotate(var(--rotate));
-  transition: transform 0.2s ease, box-shadow 0.2s ease, z-index 0.2s;
+  transition: transform 0.3s ease, width 0.3s ease, box-shadow 0.2s ease, z-index 0.2s;
   color: var(--ink);
   user-select: none;
+  cursor: pointer;
 }
 .mood-tile:hover,
 .mood-tile:focus-visible {
@@ -145,6 +146,21 @@ button {
 }
 .mood-tile.is-active {
   box-shadow: 0 0 0 3px var(--card-color), 5px 8px 0 rgba(0, 0, 0, 0.22);
+}
+
+/* The playing card straightens up, grows, and floats above its neighbors —
+   it's holding the transport controls now, so it earns the extra room. */
+.mood-tile.is-playing {
+  width: 215px;
+  z-index: 6;
+  cursor: default;
+}
+.mood-tile.is-playing,
+.mood-tile.is-playing:hover,
+.mood-tile.is-playing:focus-visible {
+  transform: rotate(0deg);
+  box-shadow: 0 0 0 3px var(--card-color), 6px 10px 0 rgba(0, 0, 0, 0.25);
+  z-index: 6;
 }
 
 .mood-tile-scene {
@@ -165,6 +181,79 @@ button {
   text-align: center;
   margin-top: 6px;
   pointer-events: none;
+}
+
+/* ===== In-card player — transport controls on the playing tile ===== */
+.mood-tile-player {
+  width: 100%;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed color-mix(in srgb, var(--ink) 30%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.mood-tile-track {
+  margin: 0;
+  max-width: 100%;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mood-tile-artist {
+  margin: 2px 0 0;
+  max-width: 100%;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mood-tile-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.mtc-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.mtc-btn:hover {
+  background: var(--ink);
+  color: var(--surface);
+  transform: scale(1.08);
+}
+.mtc-btn.play {
+  width: 36px;
+  height: 36px;
+  background: var(--ink);
+  color: var(--surface);
+  border-color: var(--ink);
+}
+.mtc-btn.play:hover {
+  background: color-mix(in srgb, var(--ink) 75%, transparent);
+  transform: scale(1.08);
 }
 
 .now-playing-eq {
@@ -221,79 +310,6 @@ button {
   to { transform: rotate(360deg); }
 }
 
-/* ===== Player bar (bottom, fixed) ===== */
-.player-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 20px;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(16px);
-  border-top: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
-}
-
-.track-art {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  object-fit: cover;
-  background: var(--surface-2);
-}
-
-.track-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.track-name {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.track-artist {
-  margin: 2px 0 0;
-  font-size: 12px;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.player-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.control-btn {
-  background: transparent;
-  color: var(--text);
-  padding: 6px;
-  border-radius: 50%;
-  display: flex;
-}
-.control-btn:hover {
-  color: var(--accent);
-}
-.control-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.volume-slider {
-  width: 80px;
-  accent-color: var(--accent);
-}
-
 /* ===== Status ===== */
 .status-message {
   min-height: 20px;
@@ -312,8 +328,6 @@ button {
 @media (max-width: 480px) {
   .wordmark { font-size: 48px; }
   .carousel-stage, .glass-card { width: 120px; height: 156px; }
-  .volume-slider { display: none; }
-  .track-artist { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -351,3 +365,4 @@ button {
   .login-polaroid { width: 84px; }
   .login-polaroid.p3 { display: none; }
 }
+

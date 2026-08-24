@@ -1,3 +1,4 @@
+import { MoodIcon } from "./MoodIcon.jsx";
 import { ILLUSTRATIONS } from "./illustrations.jsx";
 
 // A fixed scatter layout: each card gets a hand-picked offset/rotation so
@@ -17,28 +18,55 @@ const LAYOUT = [
   { top: 440, left: "35%", rotate: 2 },
 ];
 
-export function MoodBoard({ items, loadingId, activeId, onSelect }) {
+// Clicking a card that isn't playing starts it (onSelect). The card that IS
+// playing shows its own transport controls in-place (mood-tile-player) —
+// track/artist + prev/play-pause/next — instead of restarting playback. The
+// wrapper is a <div> (not <button>) because a playing card nests real
+// <button>s for those controls, and a <button> can't contain a <button>.
+export function MoodBoard({
+  items,
+  loadingId,
+  activeId,
+  onSelect,
+  track,
+  isPaused,
+  onTogglePlay,
+  onNext,
+  onPrev,
+}) {
   return (
     <div className="moodboard">
       {items.map((item, i) => {
         const slot = LAYOUT[i % LAYOUT.length];
         const Illustration = ILLUSTRATIONS[item.id];
+        const isPlaying = activeId === item.id;
+
+        function handleKeyDown(e) {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelect(item);
+          }
+        }
+
         return (
-          <button
+          <div
             key={item.id}
-            className={`mood-tile ${activeId === item.id ? "is-active" : ""}`}
+            className={`mood-tile ${isPlaying ? "is-active is-playing" : ""}`}
             style={{
               "--card-color": item.color,
               top: slot.top,
               left: slot.left,
               "--rotate": `${slot.rotate}deg`,
             }}
-            onClick={() => onSelect(item)}
+            role={isPlaying ? undefined : "button"}
+            tabIndex={isPlaying ? undefined : 0}
+            onClick={isPlaying ? undefined : () => onSelect(item)}
+            onKeyDown={isPlaying ? undefined : handleKeyDown}
           >
             <div className="mood-tile-scene" style={{ background: item.color }}>
               {loadingId === item.id ? (
                 <span className="mood-card-spinner" />
-              ) : activeId === item.id ? (
+              ) : isPlaying ? (
                 <span className="now-playing-eq" aria-hidden="true">
                   <span></span>
                   <span></span>
@@ -46,10 +74,46 @@ export function MoodBoard({ items, loadingId, activeId, onSelect }) {
                 </span>
               ) : Illustration ? (
                 <Illustration className="mood-tile-illustration" />
-              ) : null}
+              ) : (
+                item.icon && <MoodIcon name={item.icon} className="mood-tile-icon" />
+              )}
             </div>
             <span className="mood-tile-title">{item.title}</span>
-          </button>
+
+            {isPlaying && (
+              <div className="mood-tile-player">
+                <p className="mood-tile-track">{track?.name || "…"}</p>
+                <p className="mood-tile-artist">{track?.artist || ""}</p>
+                <div className="mood-tile-controls">
+                  <button className="mtc-btn" onClick={onPrev} aria-label="Previous track">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path d="M18 6v12l-8.5-6L18 6zM8 6v12H6V6h2z" fill="currentColor" />
+                    </svg>
+                  </button>
+                  <button
+                    className="mtc-btn play"
+                    onClick={onTogglePlay}
+                    aria-label={isPaused ? "Play" : "Pause"}
+                  >
+                    {isPaused ? (
+                      <svg viewBox="0 0 24 24" width="16" height="16">
+                        <path d="M8 5v14l11-7z" fill="currentColor" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" width="16" height="16">
+                        <path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor" />
+                      </svg>
+                    )}
+                  </button>
+                  <button className="mtc-btn" onClick={onNext} aria-label="Next track">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path d="M6 6v12l8.5-6L6 6zM16 6v12h2V6h-2z" fill="currentColor" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         );
       })}
     </div>
