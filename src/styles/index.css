@@ -173,6 +173,12 @@ button {
   overflow: hidden;
 }
 
+.mood-tile-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .mood-tile-title {
   font-family: var(--font-caption);
   font-size: 22px;
@@ -295,6 +301,15 @@ button {
   .mood-tile:hover,
   .mood-tile:focus-visible {
     transform: scale(1.04);
+  }
+  /* On the grid layout the playing card stays the same size as its
+     neighbors and keeps its natural grid position — no enlarging or
+     reordering, so the board doesn't jump around when playback changes. */
+  .mood-tile.is-playing,
+  .mood-tile.is-playing:hover,
+  .mood-tile.is-playing:focus-visible {
+    width: auto;
+    transform: none;
   }
 }
 
