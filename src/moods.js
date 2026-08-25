@@ -25,7 +25,7 @@ export const FAVORITES_CARD = {
   id: "favorites",
   title: "Favorites",
   isFavorites: true,
-  color: "#F5B0CB",
+  color: "#F5ECC6", // pale gold — echoes the star, lighter than the other moods but not stark white
 };
 
 export const CAROUSEL_ITEMS = [...MOODS, FAVORITES_CARD];

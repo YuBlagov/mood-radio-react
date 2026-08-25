@@ -465,14 +465,47 @@ button {
   .mood-tile:focus-visible {
     transform: scale(1.04);
   }
-  /* On the grid layout the playing card stays the same size as its
-     neighbors and keeps its natural grid position — no enlarging or
-     reordering, so the board doesn't jump around when playback changes. */
+  /* The playing card spans the full row instead of a fixed px width (which
+     either overflowed a narrow grid cell or forced the whole row wider) —
+     it also needs the room: full-size tap targets on .mtc-btn (below)
+     don't fit four-across in a ~140px column. */
   .mood-tile.is-playing,
   .mood-tile.is-playing:hover,
   .mood-tile.is-playing:focus-visible {
     width: auto;
+    grid-column: 1 / -1;
     transform: none;
+  }
+  /* Bigger tap targets for the transport buttons — visually similar size,
+     just more finger-friendly. Only reachable once .is-playing is
+     full-width (above), or four ~40-48px circles wouldn't fit in a row. */
+  .mtc-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .mtc-btn.play {
+    width: 48px;
+    height: 48px;
+  }
+  .mood-tile-controls {
+    gap: 10px;
+  }
+}
+
+/* Tighter phones — keep the grid at a comfortable 2 columns instead of
+   letting auto-fit collapse to 1 (or squeeze columns thinner than the
+   illustrations/title read well at) once there's less room to work with. */
+@media (max-width: 480px) {
+  .moodboard {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    padding: 0 12px;
+  }
+  .mood-tile {
+    padding: 8px 8px 22px;
+  }
+  .mood-tile-title {
+    font-size: 19px;
   }
 }
 
@@ -534,6 +567,18 @@ button {
 @media (max-width: 480px) {
   .wordmark { font-size: 48px; }
   .carousel-stage, .glass-card { width: 120px; height: 156px; }
+
+  /* "SNAPSHOT RADIO" + two icon buttons in one row gets tight below
+     ~360px — shrink the title first; if it's still too snug (large system
+     font size, etc.) the wrap lets the icons drop to their own centered
+     row under it instead of clipping or forcing horizontal scroll. */
+  .app-header {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  .wordmark.small {
+    font-size: 22px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -547,6 +592,11 @@ button {
   inset: 0;
   overflow: hidden;
   pointer-events: none;
+  /* Without this, being position:absolute with z-index:auto actually paints
+     it ABOVE the static .login-content next to it, DOM order or not — so
+     without an explicit lower z-index here it can visually sit on top of
+     the wordmark/tagline wherever the two happen to overlap. */
+  z-index: -1;
 }
 .login-polaroid {
   position: absolute;
@@ -569,7 +619,13 @@ button {
 .login-polaroid.p2 { top: 14%; right: 8%; transform: rotate(8deg); }
 .login-polaroid.p3 { bottom: 10%; left: 12%; transform: rotate(6deg); }
 @media (max-width: 720px) {
-  .login-polaroid { width: 84px; }
+  .login-polaroid { width: 76px; }
   .login-polaroid.p3 { display: none; }
+  /* Pin the remaining two into the very top corners — on a short viewport
+     (small phone, or a phone in landscape) the vertically-centered login
+     content can reach further up than the 8-14%/desktop positions leave
+     room for; the corners stay clear regardless of content height. */
+  .login-polaroid.p1 { top: 4%; left: 3%; }
+  .login-polaroid.p2 { top: 4%; right: 3%; }
 }
 

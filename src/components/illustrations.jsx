@@ -109,13 +109,19 @@ export function NostalgicIllustration({ className }) {
 }
 
 // For the special FAVORITES_CARD — shuffles the user's own Liked Songs.
-// A standalone heart, distinct from RomanticIllustration's — a lighter
-// pink fill plus a small highlight, so it doesn't read as the same mood.
+// A plain gold star, same bold-outline language as the rest — the card's
+// own scene background is white (see FAVORITES_CARD.color), so this reads
+// as a real polaroid rather than a colored mood swatch.
 export function FavoritesIllustration({ className }) {
   return (
     <svg className={className} viewBox="0 0 100 100" width="72" height="72" aria-hidden="true">
-      <path d="M50 78 C20 56 20 26 50 36 C80 26 80 56 50 78Z" fill="#f5b0cb" stroke={INK} strokeWidth="3" />
-      <path d="M38 34 Q48 30 50 40" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.6" />
+      <path
+        d="M50 20 L58 41 L80 42 L62 56 L69 78 L50 65 L31 78 L38 56 L20 42 L42 41 Z"
+        fill="#f2c94c"
+        stroke={INK}
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
