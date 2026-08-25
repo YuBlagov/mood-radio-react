@@ -11,7 +11,7 @@ export const MOODS = [
   { id: "romantic",  title: "Romantic",  query: "romantic love",           color: "#F5B0CB" },
   { id: "focus",     title: "Focus",     query: "focus instrumental",      color: "#8FD8D2" },
   { id: "party",     title: "Party",     query: "party dance hits",        color: "#FF8080" },
-  { id: "yoga",      title: "Yoga",      query: "yoga instrumental ambient", color: "#CAABD8" },
+  { id: "yoga",      title: "Yoga",      query: "yoga meditation",         color: "#CAABD8" },
   { id: "nostalgic", title: "Nostalgic", query: "throwback nostalgia",     color: "#90C8AC" },
 ];
 

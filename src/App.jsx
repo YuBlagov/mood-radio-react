@@ -36,11 +36,12 @@ export default function App() {
     document.documentElement.style.setProperty("--accent", glowColor);
   }, [glowColor]);
 
-  // Clear the loading spinner only once the SDK actually reports the freshly
-  // started track — not right after the play API call resolves. That call
-  // resolves well before the Web Playback SDK's player_state_changed event
-  // catches up, so clearing it any earlier left a brief window where the
-  // newly playing card showed the *previous* track's cover art.
+  // Clear the loading spinner once the SDK reports the new track — no
+  // added delay. (We tried debouncing this to ride out a suspected
+  // stale-then-real double state report on the very first pick of a
+  // session, but the extra pause wasn't worth it and didn't reliably fix
+  // the flicker anyway — likely just the previous track briefly finishing
+  // out rather than a race we can paper over client-side.)
   useEffect(() => {
     setLoadingId(null);
   }, [currentTrack?.id]);
@@ -91,14 +92,19 @@ export default function App() {
         const shuffledUris = liked.map((t) => t.uri).sort(() => Math.random() - 0.5);
         await playTracks(deviceId, shuffledUris);
       } else {
-        // Fire-and-forget: shuffle just affects how playback advances after
-        // the first track (we already pick that one ourselves, below), so
-        // it doesn't need to finish before — or even be awaited alongside —
-        // the search. Kicking it off here overlaps it with the search
-        // instead of adding it as a third sequential round trip.
-        setShuffle(deviceId, true).catch(() => {}); // best-effort, playback still works if this fails
-
-        const results = await searchPlaylistsByMood(item.query, 8);
+        // Run the search and the shuffle-on request concurrently (neither
+        // depends on the other) — but still await *both* before starting
+        // playback. Shuffle must be confirmed on before playContext, not
+        // just kicked off alongside it: the first time shuffle actually
+        // flips from off to on, a race here let Spotify start the context
+        // in its normal order and then jump to a shuffled track a moment
+        // later — a visible double flash of cover art. Once shuffle is
+        // already on (every click after the first), there's nothing to
+        // flip, so the race was invisible there.
+        const [results] = await Promise.all([
+          searchPlaylistsByMood(item.query, 8),
+          setShuffle(deviceId, true).catch(() => {}), // best-effort, playback still works if this fails
+        ]);
         if (results.length === 0) {
           setStatus("Nothing found for this mood. Try another one.");
           setLoadingId(null);
