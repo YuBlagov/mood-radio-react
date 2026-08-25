@@ -14,6 +14,7 @@ import {
   isTrackSaved,
   saveTrack,
   removeSavedTrack,
+  setUnauthorizedHandler,
 } from "./spotifyApi.js";
 import { LoginScreen } from "./components/LoginScreen.jsx";
 import { MoodBoard } from "./components/MoodBoard.jsx";
@@ -31,10 +32,26 @@ export default function App() {
   const [status, setStatus] = useState("");
   const [isCurrentTrackSaved, setIsCurrentTrackSaved] = useState(false);
 
+  // useSpotifyPlayer's account_error listener already prefixes this with
+  // "Spotify Premium is required" — a Free account can never get a working
+  // device, so cards should read as disabled rather than just "not ready
+  // yet, give it a second" (which implies it'll resolve on its own).
+  const isPremiumRequired = Boolean(playerError && playerError.includes("Premium"));
+  const isReady = Boolean(deviceId) && !isPremiumRequired;
+
   // The whole app's ambient background tints toward the active card's color.
   useEffect(() => {
     document.documentElement.style.setProperty("--accent", glowColor);
   }, [glowColor]);
+
+  // If the session actually dies mid-use (access token rejected outright,
+  // or refreshing it failed and left us with none) apiFetch reports it here
+  // rather than every subsequent call just failing forever — send the user
+  // back to the login screen instead.
+  useEffect(() => {
+    setUnauthorizedHandler(logout);
+    return () => setUnauthorizedHandler(null);
+  }, [logout]);
 
   // Clear the loading spinner once the SDK reports the new track — no
   // added delay. (We tried debouncing this to ride out a suspected
@@ -124,8 +141,16 @@ export default function App() {
         setLoadingId((current) => (current === item.id ? null : current));
       }, 4000);
     } catch (err) {
-      setStatus("Could not start playback. Please try again.");
       console.error(err);
+      const message = err?.message || "";
+      // Spotify's play endpoint reports a missing/dropped device this way
+      // (404 "Device not found", or a NO_ACTIVE_DEVICE reason) — worth a
+      // more specific message than the generic fallback when we can tell.
+      if (message.includes("NO_ACTIVE_DEVICE") || /device not found/i.test(message)) {
+        setStatus("Lost the connection to the player — reload the page and try again.");
+      } else {
+        setStatus("Could not start playback. Please try again.");
+      }
       setLoadingId(null);
     }
   }
@@ -147,7 +172,10 @@ export default function App() {
   }
 
   async function handleNext() {
-    if (!deviceId) return;
+    if (!deviceId) {
+      setStatus("Player disconnected — reload the page to reconnect.");
+      return;
+    }
     try {
       await skipToNext(deviceId);
     } catch (err) {
@@ -157,13 +185,16 @@ export default function App() {
   }
 
   async function handlePrev() {
-    if (!deviceId) return;
+    if (!deviceId) {
+      setStatus("Player disconnected — reload the page to reconnect.");
+      return;
+    }
     try {
       await skipToPrevious(deviceId);
     } catch (err) {
       setStatus("Could not skip to the previous track.");
       console.error(err);
-    }  
+    }
   }
 
   if (checkingAuth) return null;
@@ -229,14 +260,30 @@ export default function App() {
           </header>
 
           <p className="status-message" aria-live="polite">
-            {playerError || status}
+            {/* The Premium error gets its own prominent banner below instead
+                of hiding in this small mono status line. */}
+            {isPremiumRequired ? status : playerError || status}
           </p>
+
+          {isPremiumRequired && (
+            <div className="premium-required-banner" role="alert">
+              <strong className="premium-required-title">Spotify Premium required</strong>
+              <p className="premium-required-text">
+                Snapshot Radio plays music right in your browser via Spotify's Web
+                Playback SDK, which only works with a Premium account.{" "}
+                <a href="https://www.spotify.com/premium/" target="_blank" rel="noopener noreferrer">
+                  Get Premium →
+                </a>
+              </p>
+            </div>
+          )}
 
           <MoodBoard
             items={CAROUSEL_ITEMS}
             loadingId={loadingId}
             activeId={activeId}
             onSelect={handleSelect}
+            isReady={isReady}
             track={currentTrack}
             isPaused={isPaused}
             onTogglePlay={togglePlay}

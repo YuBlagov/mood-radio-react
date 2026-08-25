@@ -249,6 +249,19 @@ button {
   box-shadow: 0 0 0 3px var(--card-color), 5px 8px 0 rgba(0, 0, 0, 0.22);
 }
 
+/* Player not ready yet (device still connecting) or Premium is required —
+   either way, picking a mood won't do anything right now. */
+.mood-tile.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.mood-tile.is-disabled:hover,
+.mood-tile.is-disabled:focus-visible {
+  transform: rotate(var(--rotate));
+  box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.18);
+  z-index: auto;
+}
+
 /* The playing card straightens up, grows, and floats above its neighbors —
    it's holding the transport controls now, so it earns the extra room. */
 .mood-tile.is-playing {
@@ -482,6 +495,39 @@ button {
 }
 .status-message.error {
   color: #ff8080;
+}
+
+/* ===== Premium-required banner — a real block, not just status text ===== */
+.premium-required-banner {
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto 32px;
+  padding: 18px 22px;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-md);
+  box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.18);
+  text-align: center;
+  color: var(--ink);
+  position: relative;
+  z-index: 1;
+}
+.premium-required-title {
+  display: block;
+  font-family: var(--font-caption);
+  font-size: 24px;
+  margin-bottom: 6px;
+}
+.premium-required-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.premium-required-text a {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: underline;
 }
 
 /* ===== Responsive ===== */

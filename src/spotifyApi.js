@@ -2,9 +2,22 @@ import { getValidAccessToken } from "./auth.js";
 
 const API_BASE = "https://api.spotify.com/v1";
 
+// Lets the app react when the session turns out to be invalid mid-use —
+// either the access token was rejected outright (401) or refreshing it
+// failed and left us with none at all. Registered once from App.jsx
+// (wired to useAuth's logout) rather than threaded through every call
+// site, since apiFetch is the one place that actually knows this happened.
+let onUnauthorized = null;
+export function setUnauthorizedHandler(fn) {
+  onUnauthorized = fn;
+}
+
 async function apiFetch(path, options = {}) {
   const token = await getValidAccessToken();
-  if (!token) throw new Error("No valid access token available.");
+  if (!token) {
+    onUnauthorized?.();
+    throw new Error("Session expired — please log in again.");
+  }
 
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
@@ -14,6 +27,11 @@ async function apiFetch(path, options = {}) {
       ...options.headers,
     },
   });
+
+  if (res.status === 401) {
+    onUnauthorized?.();
+    throw new Error("Session expired — please log in again.");
+  }
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");

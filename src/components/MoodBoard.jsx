@@ -28,6 +28,7 @@ export function MoodBoard({
   loadingId,
   activeId,
   onSelect,
+  isReady,
   track,
   isPaused,
   onTogglePlay,
@@ -42,6 +43,11 @@ export function MoodBoard({
         const slot = LAYOUT[i % LAYOUT.length];
         const Illustration = ILLUSTRATIONS[item.id];
         const isPlaying = activeId === item.id;
+        // Only a non-playing card is ever clickable — a playing card's
+        // "click" surface is the transport buttons nested inside it, and a
+        // card can't be picked at all while the player isn't ready yet
+        // (device still connecting) or has dropped (see App's isReady).
+        const isSelectable = isReady && !isPlaying;
 
         function handleKeyDown(e) {
           if (e.key === "Enter" || e.key === " ") {
@@ -53,7 +59,9 @@ export function MoodBoard({
         return (
           <div
             key={item.id}
-            className={`mood-tile ${isPlaying ? "is-active is-playing" : ""}`}
+            className={`mood-tile ${isPlaying ? "is-active is-playing" : ""} ${
+              !isReady ? "is-disabled" : ""
+            }`}
             style={{
               "--card-color": item.color,
               top: slot.top,
@@ -61,9 +69,10 @@ export function MoodBoard({
               "--rotate": `${slot.rotate}deg`,
             }}
             role={isPlaying ? undefined : "button"}
-            tabIndex={isPlaying ? undefined : 0}
-            onClick={isPlaying ? undefined : () => onSelect(item)}
-            onKeyDown={isPlaying ? undefined : handleKeyDown}
+            tabIndex={isPlaying ? undefined : isSelectable ? 0 : -1}
+            aria-disabled={!isPlaying && !isReady ? true : undefined}
+            onClick={isSelectable ? () => onSelect(item) : undefined}
+            onKeyDown={isSelectable ? handleKeyDown : undefined}
           >
             <div className="mood-tile-scene" style={{ background: item.color }}>
               {loadingId === item.id ? (
