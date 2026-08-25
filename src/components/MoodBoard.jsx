@@ -67,9 +67,15 @@ export function MoodBoard({
           >
             <div className="mood-tile-scene" style={{ background: item.color }}>
               {loadingId === item.id ? (
-                <span className="mood-card-spinner" />
+                <span className="now-playing-eq" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
               ) : isPlaying && track?.image ? (
-                <img className="mood-tile-cover" src={track.image} alt="" />
+                <div className={`mood-tile-vinyl ${isPaused ? "is-paused" : ""}`}>
+                  <img className="mood-tile-vinyl-art" src={track.image} alt="" />
+                </div>
               ) : isPlaying ? (
                 <span className="now-playing-eq" aria-hidden="true">
                   <span></span>

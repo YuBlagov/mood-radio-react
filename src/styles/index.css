@@ -15,15 +15,18 @@
   --radius-md: 14px;
 }
 
-/* Dark mode only darkens the "table" the polaroids sit on — the cards
-   themselves are photo paper, and photo paper doesn't have a dark mode.
-   --surface/--surface-2/--ink/--font-* stay untouched on purpose.
-   --text is also flipped here: it's only ever used directly on --bg
+/* Dark mode mainly darkens the "table" the polaroids sit on — the cards
+   stay paper, not slate, so --ink/--font-* are untouched on purpose. The
+   paper itself does dim a touch though (less stark-white, like it's lit by
+   the room rather than daylight) via a slightly deeper --surface/--surface-2.
+   --text is flipped here too: it's only ever used directly on --bg
    (the wordmark, the login button, status text), never inside a card, so
    it needs to stay legible against the new dark backdrop. */
 [data-theme="dark"] {
   --bg: #2a241e;
   --text: #ede7d8;
+  --surface: #efe6d3;
+  --surface-2: #e3d7bd;
 }
 
 * { box-sizing: border-box; }
@@ -229,7 +232,8 @@ button {
   border-radius: 2px;
   box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.18);
   transform: rotate(var(--rotate));
-  transition: transform 0.3s ease, width 0.3s ease, box-shadow 0.2s ease, z-index 0.2s;
+  transition: transform 0.3s ease, width 0.3s ease, box-shadow 0.2s ease, z-index 0.2s,
+    background-color 0.4s ease;
   color: var(--ink);
   user-select: none;
   cursor: pointer;
@@ -268,12 +272,49 @@ button {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  transition: filter 0.4s ease;
 }
 
-.mood-tile-cover {
+/* In dark mode the card itself stays light "paper" (see the --surface note
+   near :root) — but the colored scene inside it (the mood's own color, its
+   illustration, the spinning cover art) dims and warms a touch, like the
+   light's gone evening outside the photo rather than inside it. */
+[data-theme="dark"] .mood-tile-scene {
+  filter: saturate(0.72) brightness(0.82) sepia(0.12);
+}
+
+/* The playing card's cover art as a spinning record — round, with a
+   spindle hole, turning while playing and freezing on pause. The mood's
+   own color (mood-tile-scene's background) shows through as a mat around
+   it, echoing the same halo the loading vinyl (.mood-vinyl) uses. */
+.mood-tile-vinyl {
+  position: relative;
+  width: 82%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  animation: vinyl-spin 9s linear infinite;
+}
+.mood-tile-vinyl.is-paused {
+  animation-play-state: paused;
+}
+.mood-tile-vinyl-art {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+.mood-tile-vinyl::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14%;
+  height: 14%;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .mood-tile-title {
@@ -422,16 +463,11 @@ button {
   }
 }
 
-.mood-card-spinner {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid color-mix(in srgb, var(--ink) 25%, transparent);
-  border-top-color: var(--ink);
-  animation: spin 0.7s linear infinite;
-}
-@keyframes spin {
+@keyframes vinyl-spin {
   to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mood-tile-vinyl { animation: none; }
 }
 
 /* ===== Status ===== */

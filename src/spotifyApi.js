@@ -43,13 +43,23 @@ async function rawPlaylistSearch(query, limit) {
 // query comes up short, we widen the search using just the first word and
 // merge in any new results, so moods with narrow phrasing still get a full
 // strip of playlists to choose from.
+//
+// The broadened request is kicked off in parallel with the primary one
+// (not after it) so a multi-word mood doesn't pay for two sequential round
+// trips — we only *await* it if the primary result actually falls short.
 export async function searchPlaylistsByMood(query, limit = 8) {
-  const primary = await rawPlaylistSearch(query, limit);
-  if (primary.length >= limit) return primary;
-
   const firstWord = query.split(" ")[0];
-  const broadened = firstWord === query ? [] : await rawPlaylistSearch(firstWord, limit);
+  const isMultiWord = firstWord !== query;
 
+  const primaryPromise = rawPlaylistSearch(query, limit);
+  const broadenedPromise = isMultiWord
+    ? rawPlaylistSearch(firstWord, limit).catch(() => [])
+    : null;
+
+  const primary = await primaryPromise;
+  if (primary.length >= limit || !broadenedPromise) return primary;
+
+  const broadened = await broadenedPromise;
   const seen = new Set(primary.map((p) => p.id));
   const merged = [...primary];
   for (const item of broadened) {

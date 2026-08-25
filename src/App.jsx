@@ -36,6 +36,15 @@ export default function App() {
     document.documentElement.style.setProperty("--accent", glowColor);
   }, [glowColor]);
 
+  // Clear the loading spinner only once the SDK actually reports the freshly
+  // started track — not right after the play API call resolves. That call
+  // resolves well before the Web Playback SDK's player_state_changed event
+  // catches up, so clearing it any earlier left a brief window where the
+  // newly playing card showed the *previous* track's cover art.
+  useEffect(() => {
+    setLoadingId(null);
+  }, [currentTrack?.id]);
+
   // Reflects whether the now-playing track is already in the user's Liked
   // Songs, so the heart button in the player knows which state to show.
   useEffect(() => {
@@ -76,26 +85,41 @@ export default function App() {
         const liked = await getLikedTracks(50);
         if (liked.length === 0) {
           setStatus("Your Liked Songs is empty.");
+          setLoadingId(null);
           return;
         }
         const shuffledUris = liked.map((t) => t.uri).sort(() => Math.random() - 0.5);
         await playTracks(deviceId, shuffledUris);
-        return;
+      } else {
+        // Fire-and-forget: shuffle just affects how playback advances after
+        // the first track (we already pick that one ourselves, below), so
+        // it doesn't need to finish before — or even be awaited alongside —
+        // the search. Kicking it off here overlaps it with the search
+        // instead of adding it as a third sequential round trip.
+        setShuffle(deviceId, true).catch(() => {}); // best-effort, playback still works if this fails
+
+        const results = await searchPlaylistsByMood(item.query, 8);
+        if (results.length === 0) {
+          setStatus("Nothing found for this mood. Try another one.");
+          setLoadingId(null);
+          return;
+        }
+        const contextUri = results[Math.floor(Math.random() * results.length)].id;
+
+        await playContext(deviceId, contextUri);
       }
 
-      const results = await searchPlaylistsByMood(item.query, 8);
-      if (results.length === 0) {
-        setStatus("Nothing found for this mood. Try another one.");
-        return;
-      }
-      const contextUri = results[Math.floor(Math.random() * results.length)].id;
-
-      await setShuffle(deviceId, true).catch(() => {}); // best-effort, playback still works if this fails
-      await playContext(deviceId, contextUri);
+      // Belt-and-suspenders: the effect above clears loadingId once
+      // currentTrack's id actually changes, but if the new track happens to
+      // share an id with whatever was already playing (e.g. shuffle landed
+      // on the same song again), that id never changes and the spinner
+      // would otherwise be stuck forever.
+      setTimeout(() => {
+        setLoadingId((current) => (current === item.id ? null : current));
+      }, 4000);
     } catch (err) {
       setStatus("Could not start playback. Please try again.");
       console.error(err);
-    } finally {
       setLoadingId(null);
     }
   }
