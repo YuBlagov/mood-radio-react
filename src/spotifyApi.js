@@ -37,9 +37,20 @@ async function apiFetch(path, options = {}) {
     const text = await res.text().catch(() => "");
     throw new Error(`Spotify API error ${res.status}: ${text}`);
   }
-  // 204 No Content — e.g. play/pause requests return this.
-  if (res.status === 204) return null;
-  return res.json();
+  // No body (204, or occasionally 200 with nothing in it) → null. A body
+  // that isn't JSON is handed back as-is rather than treated as failure —
+  // command endpoints (next/previous/shuffle) are documented as 204-only
+  // but have been observed as 200 with an opaque non-JSON body instead
+  // (likely something in the network path, not Spotify — the command still
+  // goes through). None of those callers use the response anyway.
+  const text = await res.text();
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 }
 
 // Runs a single raw playlist search against the Spotify API.

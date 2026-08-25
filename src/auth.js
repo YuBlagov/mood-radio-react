@@ -68,7 +68,12 @@ export async function handleAuthRedirect() {
     throw new Error("Failed to exchange the authorization code for a token.");
   }
 
-  const data = await res.json();
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Spotify's token response wasn't valid JSON.");
+  }
   storeTokens(data);
 
   // Strip ?code&state from the address bar so they aren't left visible or reused.
@@ -85,26 +90,57 @@ function storeTokens(data) {
   localStorage.setItem(STORAGE_KEYS.EXPIRES_AT, String(expiresAt));
 }
 
+// Several UI actions can each ask for a token in the same instant (e.g.
+// skipping a track while the "is this liked?" check fires right after a
+// track change) — if the token happens to be near expiry at that moment,
+// every one of them would otherwise kick off its own refresh call, all
+// racing to use the same refresh token. Spotify rotates refresh tokens on
+// use, so only the first of those concurrent calls can actually succeed;
+// the rest hit a token that's already been consumed. De-duping onto a
+// single in-flight promise means concurrent callers share one real
+// request instead of racing.
+let refreshPromise = null;
+
 async function refreshAccessToken() {
   const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
   if (!refreshToken) return null;
 
-  const body = new URLSearchParams({
-    grant_type: "refresh_token",
-    refresh_token: refreshToken,
-    client_id: CONFIG.CLIENT_ID,
-  });
+  if (refreshPromise) return refreshPromise;
 
-  const res = await fetch("https://accounts.spotify.com/api/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-  });
+  refreshPromise = (async () => {
+    try {
+      const body = new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+        client_id: CONFIG.CLIENT_ID,
+      });
 
-  if (!res.ok) return null;
-  const data = await res.json();
-  storeTokens(data);
-  return data.access_token;
+      const res = await fetch("https://accounts.spotify.com/api/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      });
+
+      if (!res.ok) return null;
+
+      // Guard against a malformed/non-JSON body — better to surface as "no
+      // token" (caller treats that as needing a fresh login) than to throw
+      // an unhandled parse error out of whatever action triggered this.
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        return null;
+      }
+
+      storeTokens(data);
+      return data.access_token;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 }
 
 // Returns a valid access token, refreshing it first if it's about to expire.
