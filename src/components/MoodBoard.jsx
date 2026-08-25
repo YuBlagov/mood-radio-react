@@ -33,6 +33,8 @@ export function MoodBoard({
   onTogglePlay,
   onNext,
   onPrev,
+  isTrackSaved,
+  onToggleFavorite,
 }) {
   return (
     <div className="moodboard">
@@ -111,6 +113,30 @@ export function MoodBoard({
                     <svg viewBox="0 0 24 24" width="16" height="16">
                       <path d="M6 6v12l8.5-6L6 6zM16 6v12h2V6h-2z" fill="currentColor" />
                     </svg>
+                  </button>
+                  <button
+                    className="mtc-btn heart"
+                    onClick={onToggleFavorite}
+                    aria-label={isTrackSaved ? "Remove from Liked Songs" : "Save to Liked Songs"}
+                  >
+                    {isTrackSaved ? (
+                      <svg viewBox="0 0 24 24" width="16" height="16">
+                        <path
+                          d="M12 20s-7-4.5-9.5-9C.9 8 1.7 4.5 5 3.4c2.3-.8 4.7 0 7 2.6 2.3-2.6 4.7-3.4 7-2.6 3.3 1.1 4.1 4.6 2.5 7.6-2.5 4.5-9.5 9-9.5 9z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" width="16" height="16">
+                        <path
+                          d="M12 20s-7-4.5-9.5-9C.9 8 1.7 4.5 5 3.4c2.3-.8 4.7 0 7 2.6 2.3-2.6 4.7-3.4 7-2.6 3.3 1.1 4.1 4.6 2.5 7.6-2.5 4.5-9.5 9-9.5 9z"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>

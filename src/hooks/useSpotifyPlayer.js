@@ -59,6 +59,7 @@ export function useSpotifyPlayer(enabled) {
         if (!state || cancelled) return;
         const track = state.track_window.current_track;
         setCurrentTrack({
+          id: track.id,
           name: track.name,
           artist: track.artists.map((a) => a.name).join(", "),
           image: track.album.images[0]?.url || "",

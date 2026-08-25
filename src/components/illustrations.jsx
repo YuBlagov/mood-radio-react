@@ -108,15 +108,14 @@ export function NostalgicIllustration({ className }) {
   );
 }
 
-// For the special ALBUM_CARD ("Mood Radio" — shuffles the default playlist).
-export function RadioIllustration({ className }) {
+// For the special FAVORITES_CARD — shuffles the user's own Liked Songs.
+// A standalone heart, distinct from RomanticIllustration's — a lighter
+// pink fill plus a small highlight, so it doesn't read as the same mood.
+export function FavoritesIllustration({ className }) {
   return (
     <svg className={className} viewBox="0 0 100 100" width="72" height="72" aria-hidden="true">
-      <rect x="14" y="42" width="72" height="38" rx="6" fill="#e8e6df" stroke={INK} strokeWidth="3" />
-      <circle cx="32" cy="61" r="10" fill="#fdfbf6" stroke={INK} strokeWidth="2.5" />
-      <circle cx="60" cy="61" r="6" fill="#fdfbf6" stroke={INK} strokeWidth="2" />
-      <path d="M70 61 h8 M70 57 h8 M70 65 h8" stroke={INK} strokeWidth="2" />
-      <path d="M30 42 L36 24 M50 42 L50 22 M70 42 L64 24" stroke={INK} strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M50 78 C20 56 20 26 50 36 C80 26 80 56 50 78Z" fill="#f5b0cb" stroke={INK} strokeWidth="3" />
+      <path d="M38 34 Q48 30 50 40" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.6" />
     </svg>
   );
 }
@@ -131,5 +130,5 @@ export const ILLUSTRATIONS = {
   party: PartyIllustration,
   yoga: YogaIllustration,
   nostalgic: NostalgicIllustration,
-  "mood-radio": RadioIllustration,
+  favorites: FavoritesIllustration,
 };

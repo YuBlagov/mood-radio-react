@@ -188,6 +188,25 @@ button {
   color: var(--bg);
   transform: scale(1.08);
 }
+
+.logout-btn {
+  /* Same on-bg context as .theme-toggle (keys off --text), but a plain
+     icon button rather than a bordered circle — a quieter, secondary
+     action next to the theme toggle. */
+  background: transparent;
+  color: var(--text);
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.logout-btn:hover {
+  background: color-mix(in srgb, var(--text) 12%, transparent);
+  color: var(--accent);
+}
+
 /* ===== Moodboard — scattered polaroid cards, tossed on a table ===== */
 .moodboard {
   position: relative;
@@ -307,7 +326,8 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 10px;
 }
 
@@ -338,6 +358,17 @@ button {
 .mtc-btn.play:hover {
   background: color-mix(in srgb, var(--ink) 75%, transparent);
   transform: scale(1.08);
+}
+
+/* Filled heart (already in Liked Songs) gets a warm pink tint instead of
+   the neutral ink used by the other transport buttons. */
+.mtc-btn.heart svg path[fill="currentColor"] {
+  color: #e0567f;
+}
+.mtc-btn.heart:hover {
+  background: #e0567f;
+  border-color: #e0567f;
+  color: var(--surface);
 }
 
 .now-playing-eq {

@@ -19,13 +19,13 @@ export function getMoodById(id) {
   return MOODS.find((m) => m.id === id);
 }
 
-// A special card that isn't a mood — it shuffles and plays the configured
-// default playlist/album directly (see CONFIG.DEFAULT_PLAYLIST_URI in config.js).
-export const ALBUM_CARD = {
-  id: "mood-radio",
-  title: "Mood Radio",
-  isAlbum: true,
-  color: "#e8e6df",
+// A special card that isn't a mood — it shuffles and plays the user's own
+// Liked Songs (Spotify's "Your Library" saved tracks) directly.
+export const FAVORITES_CARD = {
+  id: "favorites",
+  title: "Favorites",
+  isFavorites: true,
+  color: "#F5B0CB",
 };
 
-export const CAROUSEL_ITEMS = [...MOODS, ALBUM_CARD];
+export const CAROUSEL_ITEMS = [...MOODS, FAVORITES_CARD];

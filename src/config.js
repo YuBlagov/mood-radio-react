@@ -10,11 +10,8 @@ export const CONFIG = {
     "user-read-playback-state",
     "user-read-playback-position",
     "user-modify-playback-state",
+    "user-library-read",
+    "user-library-modify",
   ].join(" "),
-  // Optional: a Spotify playlist/album URI that starts playing automatically
-  // as soon as the player is ready, before any mood is picked.
-  // Format: "spotify:playlist:XXXXXXXXXXXXXXXXXXXXXX" or "spotify:album:...".
-  // Leave empty to stay silent until a mood is selected.
-  DEFAULT_PLAYLIST_URI: "spotify:playlist:6jTIqtJmJgrHyTS0rh1t71",
 };
 

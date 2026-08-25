@@ -15,6 +15,7 @@ Snapshot Radio turns music discovery into something more playful than a genre dr
 
 - 🎨 Hand-illustrated mood cards in a warm, paper-cutout art style
 - ▶️ Playback control lives inside the card itself — no separate player bar
+- ❤️ "Favorites" card shuffle-plays your own Liked Songs, with a heart button in the player to save/remove the current track
 - 🌗 Light / dark theme toggle (cards stay "paper", only the table around them darkens)
 - 🔀 Shuffled playback from Spotify playlists matched to each mood
 - 📱 Responsive layout (scattered polaroids on desktop, grid on mobile)
@@ -56,8 +57,6 @@ export const CONFIG = {
   ...
 };
 ```
-
-**Optional:** set `DEFAULT_PLAYLIST_URI` in the same file to a Spotify playlist/album URI (e.g. `spotify:playlist:XXXXXXXXXXXXXXXXXXXXXX` — get it from a playlist's Share → Copy Spotify URI in the Spotify app) to make the "Mood Radio" card shuffle-play it. Leave it empty and that card shows a status message telling you to set one, instead of playing anything.
 
 ### 4. Run it
 

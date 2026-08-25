@@ -1,15 +1,25 @@
 import { useEffect, useState } from "react";
-import { CONFIG } from "./config.js";
 import { CAROUSEL_ITEMS } from "./moods.js";
 import { useAuth } from "./hooks/useAuth.js";
 import { useSpotifyPlayer } from "./hooks/useSpotifyPlayer.js";
 import { useTheme } from "./hooks/useTheme.js";
-import { searchPlaylistsByMood, playContext, setShuffle, skipToNext, skipToPrevious} from "./spotifyApi.js";
+import {
+  searchPlaylistsByMood,
+  playContext,
+  playTracks,
+  getLikedTracks,
+  setShuffle,
+  skipToNext,
+  skipToPrevious,
+  isTrackSaved,
+  saveTrack,
+  removeSavedTrack,
+} from "./spotifyApi.js";
 import { LoginScreen } from "./components/LoginScreen.jsx";
 import { MoodBoard } from "./components/MoodBoard.jsx";
 
 export default function App() {
-  const { loggedIn, authError, checkingAuth, login } = useAuth();
+  const { loggedIn, authError, checkingAuth, login, logout } = useAuth();
   const { deviceId, currentTrack, isPaused, playerError, togglePlay } =
     useSpotifyPlayer(loggedIn);
   const { theme, toggleTheme } = useTheme();
@@ -19,14 +29,35 @@ export default function App() {
   const [glowColor, setGlowColor] = useState("#8d8d99");
   const [glowOpacity, setGlowOpacity] = useState(0.1);
   const [status, setStatus] = useState("");
+  const [isCurrentTrackSaved, setIsCurrentTrackSaved] = useState(false);
 
   // The whole app's ambient background tints toward the active card's color.
   useEffect(() => {
     document.documentElement.style.setProperty("--accent", glowColor);
   }, [glowColor]);
 
+  // Reflects whether the now-playing track is already in the user's Liked
+  // Songs, so the heart button in the player knows which state to show.
+  useEffect(() => {
+    if (!currentTrack?.id) {
+      setIsCurrentTrackSaved(false);
+      return;
+    }
+    let cancelled = false;
+    isTrackSaved(currentTrack.id)
+      .then((saved) => {
+        if (!cancelled) setIsCurrentTrackSaved(saved);
+      })
+      .catch(() => {
+        if (!cancelled) setIsCurrentTrackSaved(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentTrack?.id]);
+
   // Clicking any card plays music right away, shuffled:
-  // - "Mood Radio" shuffles and plays the configured default playlist
+  // - "Favorites" shuffles and plays the user's own Liked Songs
   // - a mood card searches for a matching playlist and shuffle-plays it
   async function handleSelect(item) {
     if (!deviceId) {
@@ -41,22 +72,23 @@ export default function App() {
     setStatus("");
 
     try {
-      let contextUri = null;
-
-      if (item.isAlbum) {
-        if (!CONFIG.DEFAULT_PLAYLIST_URI) {
-          setStatus("No default playlist configured yet — set DEFAULT_PLAYLIST_URI in config.js.");
+      if (item.isFavorites) {
+        const liked = await getLikedTracks(50);
+        if (liked.length === 0) {
+          setStatus("Your Liked Songs is empty.");
           return;
         }
-        contextUri = CONFIG.DEFAULT_PLAYLIST_URI;
-      } else {
-        const results = await searchPlaylistsByMood(item.query, 8);
-        if (results.length === 0) {
-          setStatus("Nothing found for this mood. Try another one.");
-          return;
-        }
-        contextUri = results[Math.floor(Math.random() * results.length)].id;
+        const shuffledUris = liked.map((t) => t.uri).sort(() => Math.random() - 0.5);
+        await playTracks(deviceId, shuffledUris);
+        return;
       }
+
+      const results = await searchPlaylistsByMood(item.query, 8);
+      if (results.length === 0) {
+        setStatus("Nothing found for this mood. Try another one.");
+        return;
+      }
+      const contextUri = results[Math.floor(Math.random() * results.length)].id;
 
       await setShuffle(deviceId, true).catch(() => {}); // best-effort, playback still works if this fails
       await playContext(deviceId, contextUri);
@@ -65,6 +97,22 @@ export default function App() {
       console.error(err);
     } finally {
       setLoadingId(null);
+    }
+  }
+
+  // Saves/removes the now-playing track from the user's Liked Songs.
+  async function handleToggleFavorite() {
+    if (!currentTrack?.id) return;
+    try {
+      if (isCurrentTrackSaved) {
+        await removeSavedTrack(currentTrack.id);
+      } else {
+        await saveTrack(currentTrack.id);
+      }
+      setIsCurrentTrackSaved((saved) => !saved);
+    } catch (err) {
+      setStatus("Could not update Liked Songs.");
+      console.error(err);
     }
   }
 
@@ -136,6 +184,18 @@ export default function App() {
                 </svg>
               )}
             </button>
+            <button className="logout-btn" onClick={logout} aria-label="Log out">
+              <svg viewBox="0 0 24 24" width="18" height="18">
+                <path
+                  d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4M16 17l5-5-5-5M21 12H9"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
           </header>
 
           <p className="status-message" aria-live="polite">
@@ -152,6 +212,8 @@ export default function App() {
             onTogglePlay={togglePlay}
             onNext={handleNext}
             onPrev={handlePrev}
+            isTrackSaved={isCurrentTrackSaved}
+            onToggleFavorite={handleToggleFavorite}
           />
         </section>
       )}

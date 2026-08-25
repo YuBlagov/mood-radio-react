@@ -70,6 +70,43 @@ export async function playContext(deviceId, contextUri) {
   });
 }
 
+// Starts playback of a specific, unordered list of tracks — unlike
+// playContext, which plays a playlist/album context by URI, this plays
+// exactly the track URIs handed to it (e.g. the user's own Liked Songs).
+export async function playTracks(deviceId, uris) {
+  await apiFetch(`/me/player/play?device_id=${deviceId}`, {
+    method: "PUT",
+    body: JSON.stringify({ uris }),
+  });
+}
+
+// Fetches the current user's saved ("Liked") tracks.
+export async function getLikedTracks(limit = 50) {
+  const data = await apiFetch(`/me/tracks?limit=${limit}`);
+  const items = data?.items?.filter((item) => item?.track) || [];
+  return items.map(({ track }) => ({
+    id: track.id,
+    uri: track.uri,
+    name: track.name,
+    artist: track.artists.map((a) => a.name).join(", "),
+    image: track.album?.images?.[0]?.url || "",
+  }));
+}
+
+// Whether a track is already in the user's Liked Songs.
+export async function isTrackSaved(trackId) {
+  const data = await apiFetch(`/me/tracks/contains?ids=${trackId}`);
+  return Boolean(data?.[0]);
+}
+
+export async function saveTrack(trackId) {
+  await apiFetch(`/me/tracks?ids=${trackId}`, { method: "PUT" });
+}
+
+export async function removeSavedTrack(trackId) {
+  await apiFetch(`/me/tracks?ids=${trackId}`, { method: "DELETE" });
+}
+
 // Turns shuffle on/off for the current playback session.
 export async function setShuffle(deviceId, state) {
   await apiFetch(`/me/player/shuffle?state=${state}&device_id=${deviceId}`, {
