@@ -4,6 +4,8 @@ Pick a mood, get a snapshot of music that matches it — powered by Spotify.
 
 Snapshot Radio turns music discovery into something more playful than a genre dropdown: colorful illustrated "polaroid" cards, each tied to a mood. Tap one and it starts playing right away — the card itself becomes the player, with full playback controls built in.
 
+![Demo](docs/mood-radio-demo-from-login.gif)
+
 ## How it works
 
 1. **Log in with Spotify** (Premium required for in-browser playback)
