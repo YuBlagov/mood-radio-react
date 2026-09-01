@@ -39,7 +39,7 @@ export function useSpotifyPlayer(enabled) {
       if (cancelled) return;
 
       const player = new window.Spotify.Player({
-        name: "Music Mood App",
+        name:  "Snapshot Radio",
         getOAuthToken: async (cb) => {
           const token = await getValidAccessToken();
           cb(token);
